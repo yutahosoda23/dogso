@@ -12,7 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 // ミドルウェア
 app.use(cors({
-  origin: true,
+  origin: process.env.FRONTEND_URL || 'https://dogso.vercel.app',
   credentials: true
 }));
 app.use(express.json());
