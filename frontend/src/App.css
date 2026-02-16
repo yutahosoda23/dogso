@@ -1,0 +1,664 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background-color: #f6f7f8;
+  color: #1c1c1c;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ヘッダー */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  font-size: 24px;
+  color: #ff4500;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* ボタン */
+.button {
+  padding: 10px 20px;
+  background-color: #ff4500;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: #ff5722;
+}
+
+.button-primary {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+/* スレッド一覧 */
+.threads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.thread-card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.thread-card h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.thread-card h2 a {
+  color: #1c1c1c;
+  text-decoration: none;
+}
+
+.thread-card h2 a:hover {
+  color: #ff4500;
+}
+
+.thread-url {
+  color: #0079d3;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.thread-url:hover {
+  text-decoration: underline;
+}
+
+.thread-info {
+  margin-bottom: 10px;
+}
+
+.thread-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+  color: #7c7c7c;
+  margin-top: 10px;
+}
+
+/* スレッド詳細 */
+.thread-detail {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.thread-detail h1 {
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+/* コメントセクション */
+.comments-section {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.comments-section h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.comment-form {
+  margin-bottom: 30px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.comment-form textarea:focus {
+  outline: none;
+  border-color: #ff4500;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.comment-card {
+  padding: 15px;
+  border-left: 3px solid #ff4500;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.comment-header strong {
+  color: #ff4500;
+}
+
+.comment-header span {
+  color: #7c7c7c;
+}
+
+.comment-content {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.reaction-button {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.reaction-button:hover {
+  background-color: #f0f0f0;
+  border-color: #ff4500;
+}
+
+/* 認証フォーム */
+.auth-container {
+  max-width: 500px;
+  margin: 50px auto;
+  background-color: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #ff4500;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1c1c1c;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #ff4500;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #7c7c7c;
+}
+
+.auth-link a {
+  color: #ff4500;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+/* その他 */
+.back-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #0079d3;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.login-prompt {
+  background-color: #e3f2fd;
+  padding: 20px;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-prompt a {
+  color: #ff4500;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-prompt a:hover {
+  text-decoration: underline;
+}
+
+/* コメント返信機能 */
+.comment-item {
+  margin-bottom: 10px;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.reply-button {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.reply-button:hover {
+  background-color: #f0f0f0;
+  border-color: #0079d3;
+}
+
+.collapse-button {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  color: #7c7c7c;
+}
+
+.collapse-button:hover {
+  background-color: #f0f0f0;
+  border-color: #7c7c7c;
+}
+
+.reply-form {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
+.reply-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+
+.reply-form textarea:focus {
+  outline: none;
+  border-color: #ff4500;
+}
+
+.reply-form-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.button-small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.button-cancel {
+  background-color: #7c7c7c;
+}
+
+.button-cancel:hover {
+  background-color: #6c6c6c;
+}
+
+.replies {
+  margin-top: 10px;
+}
+
+/* スレッド編集機能 */
+.thread-header-with-edit {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.edit-button {
+  background-color: #0079d3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.edit-button:hover {
+  background-color: #0068b8;
+}
+
+.edit-form {
+  width: 100%;
+}
+
+.edit-form .form-group {
+  margin-bottom: 15px;
+}
+
+.edit-form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.edit-form input:focus {
+  outline: none;
+  border-color: #ff4500;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.edit-buttons .button-primary {
+  flex: 1;
+  max-width: 150px;
+}
+
+.edit-buttons .button-cancel {
+  flex: 1;
+  max-width: 150px;
+}
+/* サムネイル表示 */
+.thread-card-content {
+  display: flex;
+  gap: 15px;
+}
+
+.thread-thumbnail {
+  flex-shrink: 0;
+  width: 120px;
+  height: 80px;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}
+
+.thread-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thread-text {
+  flex: 1;
+}
+
+.thread-detail-thumbnail {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.thread-detail-thumbnail img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* サムネイルをクリック可能に */
+.thread-thumbnail {
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-decoration: none;
+  display: block;
+}
+
+.thread-thumbnail:hover {
+  opacity: 0.8;
+}
+
+.thread-detail-thumbnail {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.thread-detail-thumbnail:hover {
+  opacity: 0.9;
+}
+
+/* 外部リンク確認ダイアログ */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+}
+
+.dialog-box h3 {
+  margin-bottom: 15px;
+  color: #1c1c1c;
+  font-size: 20px;
+}
+
+.dialog-box p {
+  margin-bottom: 25px;
+  color: #7c7c7c;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.dialog-url {
+  background-color: #f6f7f8;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.dialog-buttons .button {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+}
+
+.dialog-buttons .button-primary {
+  background-color: #ff4500;
+}
+
+.dialog-buttons .button-cancel {
+  background-color: #7c7c7c;
+}
+
+/* カード全体をクリック可能に */
+.thread-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.thread-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.thread-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.thread-card-link h2 {
+  color: #1c1c1c;
+  transition: color 0.2s;
+}
+
+.thread-card:hover h2 {
+  color: #ff4500;
+}
+
+/* サブタイトルとハッシュタグ */
+.thread-subtitle {
+  font-size: 15px;
+  color: #5a5a5a;
+  line-height: 1.5;
+  margin: 10px 0 15px 0;
+}
+
+.thread-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.tag {
+  background-color: #e8f4f8;
+  color: #0079d3;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* フォーム内の文字数カウント */
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: #7c7c7c;
+  margin-top: 5px;
+}
+
+.form-group small {
+  display: block;
+  font-size: 12px;
+  color: #7c7c7c;
+  margin-top: 5px;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ff4500;
+}

@@ -1,0 +1,28 @@
+# 依存関係
+node_modules/
+npm-debug.log*
+
+# 環境変数
+.env
+.env.local
+.env.production
+
+# データベース
+*.db
+*.sqlite
+*.sqlite3
+
+# ビルドファイル
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# その他
+*.log
