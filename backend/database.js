@@ -15,6 +15,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // テーブルの作成
 db.serialize(() => {
+  // チャンネルテーブル（チームマスター）
+  db.run(`
+    CREATE TABLE IF NOT EXISTS channels (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      slug TEXT NOT NULL UNIQUE,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // 初期データ投入（浦和レッズ）
+  db.run(`
+    INSERT OR IGNORE INTO channels (id, name, slug, description) 
+    VALUES (1, '浦和レッズ', 'urawa', '浦和レッズサポーターのコミュニティ')
+  `);
+
   // ユーザーテーブル
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -35,8 +52,10 @@ db.serialize(() => {
       url TEXT NOT NULL,
       thumbnail TEXT,
       tags TEXT,
+      channel_id INTEGER NOT NULL DEFAULT 1,
       user_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (channel_id) REFERENCES channels(id),
       FOREIGN KEY (user_id) REFERENCES users(id)
     )
   `);

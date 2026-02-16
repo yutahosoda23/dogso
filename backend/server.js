@@ -35,6 +35,35 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// ================== チャンネル関連 ==================
+
+// チャンネル一覧取得
+app.get('/api/channels', (req, res) => {
+  db.all('SELECT * FROM channels ORDER BY id ASC', [], (err, channels) => {
+    if (err) {
+      return res.status(500).json({ error: 'サーバーエラー' });
+    }
+    res.json(channels);
+  });
+});
+
+// 特定チャンネルの取得
+app.get('/api/channels/:slug', (req, res) => {
+  const { slug } = req.params;
+  
+  db.get('SELECT * FROM channels WHERE slug = ?', [slug], (err, channel) => {
+    if (err) {
+      return res.status(500).json({ error: 'サーバーエラー' });
+    }
+    
+    if (!channel) {
+      return res.status(404).json({ error: 'チャンネルが見つかりません' });
+    }
+    
+    res.json(channel);
+  });
+});
+
 // ================== ユーザー関連 ==================
 
 // ユーザー登録
@@ -109,16 +138,29 @@ app.post('/api/login', (req, res) => {
 
 // ================== スレッド関連 ==================
 
-// スレッド一覧取得（誰でも見られる）
+// スレッド一覧取得（チャンネルでフィルタリング可能）
 app.get('/api/threads', (req, res) => {
-  db.all(
-    `SELECT threads.*, users.username, 
-     (SELECT COUNT(*) FROM comments WHERE comments.thread_id = threads.id) as comment_count,
-     (SELECT COUNT(*) FROM reactions WHERE reactions.thread_id = threads.id) as reaction_count
-     FROM threads 
-     JOIN users ON threads.user_id = users.id 
-     ORDER BY threads.created_at DESC`,
-    [],
+  const { channel } = req.query;
+  
+  let query = `
+    SELECT threads.*, users.username, channels.name as channel_name, channels.slug as channel_slug,
+    (SELECT COUNT(*) FROM comments WHERE comments.thread_id = threads.id) as comment_count,
+    (SELECT COUNT(*) FROM reactions WHERE reactions.thread_id = threads.id) as reaction_count
+    FROM threads 
+    JOIN users ON threads.user_id = users.id 
+    JOIN channels ON threads.channel_id = channels.id
+  `;
+  
+  const params = [];
+  
+  if (channel) {
+    query += ' WHERE channels.slug = ?';
+    params.push(channel);
+  }
+  
+  query += ' ORDER BY threads.created_at DESC';
+  
+  db.all(query, params,
     (err, threads) => {
       if (err) {
         return res.status(500).json({ error: 'サーバーエラー' });
@@ -133,7 +175,11 @@ app.get('/api/threads/:id', (req, res) => {
   const { id } = req.params;
 
   db.get(
-    'SELECT threads.*, users.username FROM threads JOIN users ON threads.user_id = users.id WHERE threads.id = ?',
+    `SELECT threads.*, users.username, channels.name as channel_name, channels.slug as channel_slug 
+     FROM threads 
+     JOIN users ON threads.user_id = users.id 
+     JOIN channels ON threads.channel_id = channels.id 
+     WHERE threads.id = ?`,
     [id],
     (err, thread) => {
       if (err) {
@@ -211,9 +257,12 @@ app.post('/api/threads', authenticateToken, async (req, res) => {
   // URLからサムネイルを取得
   const thumbnail = await getThumbnail(url);
 
+  // デフォルトで浦和レッズ（channel_id = 1）に投稿
+  const channelId = 1;
+  
   db.run(
-    'INSERT INTO threads (title, subtitle, url, thumbnail, tags, user_id) VALUES (?, ?, ?, ?, ?, ?)',
-    [title, subtitle || null, url, thumbnail, tags || null, userId],
+    'INSERT INTO threads (title, subtitle, url, thumbnail, tags, channel_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, subtitle || null, url, thumbnail, tags || null, channelId, userId],
     function(err) {
       if (err) {
         return res.status(500).json({ error: 'サーバーエラー' });

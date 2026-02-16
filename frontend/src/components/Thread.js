@@ -59,13 +59,13 @@ function TopLevelComment({ comment, replies, user, onReply, onReaction }) {
               rows="3"
             />
             <div className="reply-form-buttons">
-              <button type="submit" className="button button-small">
+              <button type="submit" className="button button-small button-primary">
                 返信を投稿
               </button>
               <button 
                 type="button" 
                 onClick={() => setShowReplyForm(false)}
-                className="button button-cancel"
+                className="button button-small button-cancel"
               >
                 キャンセル
               </button>
@@ -100,7 +100,6 @@ function ReplyComment({ reply, topLevelCommentId, user, onReply, onReaction }) {
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
-    // 常にトップレベルコメントのIDをparent_idとして使用
     await onReply(topLevelCommentId, replyContent);
     setReplyContent('');
     setShowReplyForm(false);
@@ -141,13 +140,13 @@ function ReplyComment({ reply, topLevelCommentId, user, onReply, onReaction }) {
               rows="3"
             />
             <div className="reply-form-buttons">
-              <button type="submit" className="button button-small">
+              <button type="submit" className="button button-small button-primary">
                 返信を投稿
               </button>
               <button 
                 type="button" 
                 onClick={() => setShowReplyForm(false)}
-                className="button button-cancel"
+                className="button button-small button-cancel"
               >
                 キャンセル
               </button>
@@ -160,7 +159,7 @@ function ReplyComment({ reply, topLevelCommentId, user, onReply, onReaction }) {
 }
 
 function Thread() {
-  const { id } = useParams();
+  const { id, channel } = useParams();
   const [thread, setThread] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -186,7 +185,7 @@ function Thread() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-const fetchThread = async () => {
+  const fetchThread = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/threads/${id}`);
       setThread(response.data);
@@ -201,23 +200,6 @@ const fetchThread = async () => {
       setError('スレッドの読み込みに失敗しました');
       setLoading(false);
     }
-  };
-
-  const handleThumbnailClick = (e, url) => {
-    e.preventDefault();
-    setSelectedUrl(url);
-    setShowDialog(true);
-  };
-
-  const handleConfirmNavigation = () => {
-    window.open(selectedUrl, '_blank', 'noopener,noreferrer');
-    setShowDialog(false);
-    setSelectedUrl('');
-  };
-
-  const handleCancelNavigation = () => {
-    setShowDialog(false);
-    setSelectedUrl('');
   };
 
   const handleCommentSubmit = async (e) => {
@@ -328,7 +310,7 @@ const fetchThread = async () => {
     }
   };
 
-const handleEditSubmit = async (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -338,7 +320,6 @@ const handleEditSubmit = async (e) => {
       return;
     }
 
-    // サブタイトルの文字数チェック
     if (editSubtitle.length > 100) {
       setError('サブタイトルは100文字以内にしてください');
       return;
@@ -367,6 +348,23 @@ const handleEditSubmit = async (e) => {
     }
   };
 
+  const handleThumbnailClick = (e, url) => {
+    e.preventDefault();
+    setSelectedUrl(url);
+    setShowDialog(true);
+  };
+
+  const handleConfirmNavigation = () => {
+    window.open(selectedUrl, '_blank', 'noopener,noreferrer');
+    setShowDialog(false);
+    setSelectedUrl('');
+  };
+
+  const handleCancelNavigation = () => {
+    setShowDialog(false);
+    setSelectedUrl('');
+  };
+
   if (loading) {
     return <div className="container">読み込み中...</div>;
   }
@@ -374,8 +372,17 @@ const handleEditSubmit = async (e) => {
   if (error && !thread) {
     return (
       <div className="container">
+        <div className="header">
+          <div className="header-title">
+            <h1>DOGSO/UrawaReds</h1>
+          </div>
+          <div className="header-buttons">
+            <Link to={`/${channel}`} className="button">
+              ホーム
+            </Link>
+          </div>
+        </div>
         <div className="error-message">{error}</div>
-        <Link to="/" className="back-link">← ホームに戻る</Link>
       </div>
     );
   }
@@ -392,9 +399,18 @@ const handleEditSubmit = async (e) => {
     };
   });
 
-return (
+  return (
     <div className="container">
-      <Link to="/" className="back-link">← ホームに戻る</Link>
+      <div className="header">
+        <div className="header-title">
+          <h1>DOGSO/UrawaReds</h1>
+        </div>
+        <div className="header-buttons">
+          <Link to={`/${channel}`} className="button">
+            ホーム
+          </Link>
+        </div>
+      </div>
 
       {thread && (
         <div className="thread-detail">
@@ -460,13 +476,12 @@ return (
           ) : (
             <>
               {thread.thumbnail && (
-                <a 
-                  href={thread.url} 
-                  onClick={(e) => handleThumbnailClick(e, thread.url)}
+                <div
                   className="thread-detail-thumbnail"
+                  onClick={(e) => handleThumbnailClick(e, thread.url)}
                 >
                   <img src={thread.thumbnail} alt={thread.title} />
-                </a>
+                </div>
               )}
               <div className="thread-header-with-edit">
                 <h1>{thread.title}</h1>
@@ -521,7 +536,7 @@ return (
           </form>
         ) : (
           <div className="login-prompt">
-            コメントを投稿するには <Link to="/login">ログイン</Link> が必要です
+            コメントを投稿するには <Link to={`/${channel}/login`}>ログイン</Link> が必要です
           </div>
         )}
 

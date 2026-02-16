@@ -1,25 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 function Home() {
+  const { channel } = useParams();
+  const [channelData, setChannelData] = useState(null);
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState('');
+  const [user, setUser] = useState(null);
 
-  // スレッド一覧を取得
+  // ログインユーザー情報とチャンネル情報を取得
   useEffect(() => {
-    fetchThreads();
-  }, []);
+    // ログインユーザー情報を取得
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      setUser(JSON.parse(userStr));
+    }
 
-  const fetchThreads = async () => {
+    fetchChannelAndThreads();
+  }, [channel]);
+
+  const fetchChannelAndThreads = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/threads`);
-      setThreads(response.data);
+      // チャンネル情報を取得
+      const channelResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/channels/${channel}`);
+      setChannelData(channelResponse.data);
+
+      // スレッド一覧を取得（チャンネルでフィルタリング）
+      const threadsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/threads?channel=${channel}`);
+      setThreads(threadsResponse.data);
       setLoading(false);
     } catch (error) {
-      console.error('スレッド取得エラー:', error);
+      console.error('データ取得エラー:', error);
       setLoading(false);
     }
   };
@@ -45,24 +59,43 @@ function Home() {
     return <div className="container">読み込み中...</div>;
   }
 
- return (
+  if (!channelData) {
+    return (
+      <div className="container">
+        <div className="error-message">チャンネルが見つかりません</div>
+      </div>
+    );
+  }
+
+  return (
     <div className="container">
       <div className="header">
-        <h1>Dogso - ニュース掲示板</h1>
+        <div className="header-title">
+          <h1>DOGSO/UrawaReds</h1>
+        </div>
         <div className="header-buttons">
-          <Link to="/create" className="button">新規スレッド作成</Link>
-          <Link to="/login" className="button">ログイン</Link>
-          <Link to="/register" className="button">登録</Link>
+          {user ? (
+            <Link to={`/${channel}/create`} className="button">
+              ＋投稿
+            </Link>
+          ) : (
+            <Link to={`/${channel}/login`} className="button">
+              ログイン
+            </Link>
+          )}
         </div>
       </div>
 
       <div className="threads-list">
         {threads.length === 0 ? (
-          <p>まだスレッドがありません。最初のスレッドを作成しましょう！</p>
+          <div style={{ padding: '40px 20px', textAlign: 'center', color: '#666' }}>
+            <p>まだスレッドがありません</p>
+            <p style={{ fontSize: '14px', marginTop: '8px' }}>最初のスレッドを作成しましょう！</p>
+          </div>
         ) : (
           threads.map((thread) => (
             <div key={thread.id} className="thread-card">
-              <Link to={`/thread/${thread.id}`} className="thread-card-link">
+              <Link to={`/${channel}/thread/${thread.id}`} className="thread-card-link">
                 <div className="thread-card-content">
                   {thread.thumbnail && (
                     <div
@@ -79,10 +112,9 @@ function Home() {
                   <div className="thread-text">
                     <h2>{thread.title}</h2>
                     <div className="thread-meta">
-                      <span>投稿者: {thread.username}</span>
-                      <span>コメント: {thread.comment_count}</span>
-                      <span>リアクション: {thread.reaction_count}</span>
-                      <span>{new Date(thread.created_at).toLocaleString('ja-JP')}</span>
+                      <span>{thread.username}</span>
+                      <span>💬 {thread.comment_count}</span>
+                      <span>👍 {thread.reaction_count}</span>
                     </div>
                   </div>
                 </div>

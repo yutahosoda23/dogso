@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 function Register() {
+  const { channel } = useParams();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +33,7 @@ function Register() {
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       // ホームページにリダイレクト
-      navigate('/');
+      navigate(`/${channel}`);
     } catch (error) {
       setError(error.response?.data?.error || '登録に失敗しました');
     }
@@ -40,6 +41,17 @@ function Register() {
 
   return (
     <div className="container">
+      <div className="header">
+        <div className="header-title">
+          <h1>DOGSO/UrawaReds</h1>
+        </div>
+        <div className="header-buttons">
+          <Link to={`/${channel}`} className="button">
+            ホーム
+          </Link>
+        </div>
+      </div>
+
       <div className="auth-container">
         <h1>新規登録</h1>
         
@@ -98,10 +110,8 @@ function Register() {
         </form>
 
         <p className="auth-link">
-          既にアカウントをお持ちの方は <Link to="/login">こちらからログイン</Link>
+          既にアカウントをお持ちの方は <Link to={`/${channel}/login`}>こちらからログイン</Link>
         </p>
-
-        <Link to="/" className="back-link">← ホームに戻る</Link>
       </div>
     </div>
   );

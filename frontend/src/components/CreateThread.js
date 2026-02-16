@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 function CreateThread() {
+  const { channel } = useParams();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [url, setUrl] = useState('');
@@ -39,7 +40,7 @@ function CreateThread() {
       );
 
       // 作成したスレッドのページに移動
-      navigate(`/thread/${response.data.thread.id}`);
+      navigate(`/${channel}/thread/${response.data.thread.id}`);
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         setError('ログインセッションが切れました。再度ログインしてください');
@@ -51,8 +52,19 @@ function CreateThread() {
 
   return (
     <div className="container">
+      <div className="header">
+        <div className="header-title">
+          <h1>DOGSO/UrawaReds</h1>
+        </div>
+        <div className="header-buttons">
+          <Link to={`/${channel}`} className="button">
+            ホーム
+          </Link>
+        </div>
+      </div>
+
       <div className="auth-container">
-        <h1>新規スレッド作成</h1>
+        <h1>新規投稿</h1>
         
         {error && <div className="error-message">{error}</div>}
 
@@ -97,17 +109,15 @@ function CreateThread() {
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="#技術 #ニュース #AI"
+              placeholder="#ACL #移籍 #試合結果"
             />
-            <small>例: #技術 #ニュース #AI</small>
+            <small>例: #ACL #移籍 #試合結果</small>
           </div>
 
           <button type="submit" className="button button-primary">
-            スレッド作成
+            投稿する
           </button>
         </form>
-
-        <Link to="/" className="back-link">← ホームに戻る</Link>
       </div>
     </div>
   );

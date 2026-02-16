@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 function Login() {
+  const { channel } = useParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +24,7 @@ function Login() {
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       // ホームページにリダイレクト
-      navigate('/');
+      navigate(`/${channel}`);
     } catch (error) {
       setError(error.response?.data?.error || 'ログインに失敗しました');
     }
@@ -64,11 +65,13 @@ function Login() {
           </button>
         </form>
 
-        <p className="auth-link">
-          アカウントをお持ちでない方は <Link to="/register">こちらから登録</Link>
-        </p>
+        <div className="auth-divider">または</div>
 
-        <Link to="/" className="back-link">← ホームに戻る</Link>
+        <Link to={`/${channel}/register`} className="button button-secondary">
+          新しくアカウントを作成
+        </Link>
+
+        <Link to={`/${channel}`} className="back-link">← ホームに戻る</Link>
       </div>
     </div>
   );
