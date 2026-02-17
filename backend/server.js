@@ -148,7 +148,7 @@ app.get('/api/threads', (req, res) => {
     (SELECT COUNT(*) FROM reactions WHERE reactions.thread_id = threads.id) as reaction_count
     FROM threads 
     JOIN users ON threads.user_id = users.id 
-    JOIN channels ON threads.channel_id = channels.id
+    LEFT JOIN channels ON threads.channel_id = channels.id
   `;
   
   const params = [];
@@ -178,7 +178,7 @@ app.get('/api/threads/:id', (req, res) => {
     `SELECT threads.*, users.username, channels.name as channel_name, channels.slug as channel_slug 
      FROM threads 
      JOIN users ON threads.user_id = users.id 
-     JOIN channels ON threads.channel_id = channels.id 
+     LEFT JOIN channels ON threads.channel_id = channels.id 
      WHERE threads.id = ?`,
     [id],
     (err, thread) => {
