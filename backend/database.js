@@ -1,10 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// データベースファイルのパス
 const dbPath = path.join(__dirname, 'dogso.db');
 
-// データベース接続
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('データベース接続エラー:', err.message);
@@ -13,9 +11,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// テーブルの作成
 db.serialize(() => {
-  // チャンネルテーブル（チームマスター）
+  // 既存テーブルを削除して再作成（本番環境のリセット）
+  db.run(`DROP TABLE IF EXISTS reactions`);
+  db.run(`DROP TABLE IF EXISTS comments`);
+  db.run(`DROP TABLE IF EXISTS threads`);
+  db.run(`DROP TABLE IF EXISTS users`);
+  db.run(`DROP TABLE IF EXISTS channels`);
+
+  // チャンネルテーブル
   db.run(`
     CREATE TABLE IF NOT EXISTS channels (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +47,7 @@ db.serialize(() => {
     )
   `);
 
-// スレッドテーブル
+  // スレッドテーブル
   db.run(`
     CREATE TABLE IF NOT EXISTS threads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,7 +79,7 @@ db.serialize(() => {
     )
   `);
 
-  // リアクションテーブル（いいね）
+  // リアクションテーブル
   db.run(`
     CREATE TABLE IF NOT EXISTS reactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
