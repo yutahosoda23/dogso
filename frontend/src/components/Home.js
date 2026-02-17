@@ -3,25 +3,28 @@ import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 function Home() {
-  const { channel } = useParams(); // URLから channel を取得
+  const { channel } = useParams();
   const [channelData, setChannelData] = useState(null);
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState('');
+  const [user, setUser] = useState(null);
 
-  // チャンネル情報とスレッド一覧を取得
   useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      setUser(JSON.parse(userStr));
+    }
     fetchChannelAndThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel]);
 
   const fetchChannelAndThreads = async () => {
     try {
-      // チャンネル情報を取得
       const channelResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/channels/${channel}`);
       setChannelData(channelResponse.data);
 
-      // スレッド一覧を取得（チャンネルでフィルタリング）
       const threadsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/threads?channel=${channel}`);
       setThreads(threadsResponse.data);
       setLoading(false);
@@ -63,17 +66,28 @@ function Home() {
   return (
     <div className="container">
       <div className="header">
-        <h1>DOGSO - {channelData.name}</h1>
+        <div className="header-title">
+          <h1>DOGSO/UrawaReds</h1>
+        </div>
         <div className="header-buttons">
-          <Link to={`/${channel}/create`} className="button">新規スレッド作成</Link>
-          <Link to={`/${channel}/login`} className="button">ログイン</Link>
-          <Link to={`/${channel}/register`} className="button">登録</Link>
+          {user ? (
+            <Link to={`/${channel}/create`} className="button">
+              ＋投稿
+            </Link>
+          ) : (
+            <Link to={`/${channel}/login`} className="button">
+              ログイン
+            </Link>
+          )}
         </div>
       </div>
 
       <div className="threads-list">
         {threads.length === 0 ? (
-          <p>まだスレッドがありません。最初のスレッドを作成しましょう！</p>
+          <div style={{ padding: '40px 20px', textAlign: 'center', color: '#666' }}>
+            <p>まだスレッドがありません</p>
+            <p style={{ fontSize: '14px', marginTop: '8px' }}>最初のスレッドを作成しましょう！</p>
+          </div>
         ) : (
           threads.map((thread) => (
             <div key={thread.id} className="thread-card">
@@ -94,10 +108,9 @@ function Home() {
                   <div className="thread-text">
                     <h2>{thread.title}</h2>
                     <div className="thread-meta">
-                      <span>投稿者: {thread.username}</span>
-                      <span>コメント: {thread.comment_count}</span>
-                      <span>リアクション: {thread.reaction_count}</span>
-                      <span>{new Date(thread.created_at).toLocaleString('ja-JP')}</span>
+                      <span>{thread.username}</span>
+                      <span>💬 {thread.comment_count}</span>
+                      <span>👍 {thread.reaction_count}</span>
                     </div>
                   </div>
                 </div>
@@ -107,7 +120,6 @@ function Home() {
         )}
       </div>
 
-      {/* 外部リンク確認ダイアログ */}
       {showDialog && (
         <div className="dialog-overlay" onClick={handleCancelNavigation}>
           <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
