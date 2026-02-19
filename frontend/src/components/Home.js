@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Home() {
   const { channel } = useParams();
+  const navigate = useNavigate();
   const [channelData, setChannelData] = useState(null);
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showDialog, setShowDialog] = useState(false);
-  const [selectedUrl, setSelectedUrl] = useState('');
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -34,21 +33,58 @@ function Home() {
     }
   };
 
-  const handleThumbnailClick = (e, url) => {
+  const handleLike = async (e, threadId) => {
     e.preventDefault();
-    setSelectedUrl(url);
-    setShowDialog(true);
+    e.stopPropagation();
+
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/reactions`,
+        {
+          thread_id: threadId,
+          type: 'heart'
+        }
+      );
+      fetchChannelAndThreads();
+    } catch (error) {
+      if (error.response?.data?.error?.includes('既に')) {
+        // 既にリアクション済み → 削除
+        try {
+          await axios.delete(
+            `${process.env.REACT_APP_API_URL}/api/reactions`,
+            {
+              data: {
+                thread_id: threadId,
+                type: 'heart'
+              }
+            }
+          );
+          fetchChannelAndThreads();
+        } catch (err) {
+          console.error('リアクション削除エラー:', err);
+        }
+      }
+    }
   };
 
-  const handleConfirmNavigation = () => {
-    window.open(selectedUrl, '_blank', 'noopener,noreferrer');
-    setShowDialog(false);
-    setSelectedUrl('');
-  };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    // JST (+9時間)
+    date.setHours(date.getHours() + 9);
+    
+    const now = new Date();
+    const diff = now - date;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-  const handleCancelNavigation = () => {
-    setShowDialog(false);
-    setSelectedUrl('');
+    if (seconds < 60) return `${seconds}秒前`;
+    if (minutes < 60) return `${minutes}分前`;
+    if (hours < 24) return `${hours}時間前`;
+    if (days < 7) return `${days}日前`;
+    
+    return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
   };
 
   if (loading) {
@@ -66,7 +102,7 @@ function Home() {
   return (
     <div className="container">
       <div className="header">
-        <div className="header-title">
+        <div className="header-title" onClick={() => navigate(`/${channel}`)} style={{ cursor: 'pointer' }}>
           <h1>DOGSO/UrawaReds</h1>
         </div>
         <div className="header-buttons">
@@ -82,60 +118,52 @@ function Home() {
         </div>
       </div>
 
-      <div className="threads-list">
+      <div className="feed-list">
         {threads.length === 0 ? (
-          <div style={{ padding: '40px 20px', textAlign: 'center', color: '#666' }}>
-            <p>まだスレッドがありません</p>
-            <p style={{ fontSize: '14px', marginTop: '8px' }}>最初のスレッドを作成しましょう！</p>
+          <div className="empty-feed">
+            <p>まだ投稿がありません</p>
+            <p style={{ fontSize: '14px', marginTop: '8px', color: '#999' }}>
+              最初の投稿をしてみましょう！
+            </p>
           </div>
         ) : (
           threads.map((thread) => (
-            <div key={thread.id} className="thread-card">
-              <Link to={`/${channel}/thread/${thread.id}`} className="thread-card-link">
-                <div className="thread-card-content">
-                  {thread.thumbnail && (
-                    <div
-                      className="thread-thumbnail"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleThumbnailClick(e, thread.url);
-                      }}
-                    >
-                      <img src={thread.thumbnail} alt={thread.title} />
-                    </div>
-                  )}
-                  <div className="thread-text">
-                    <h2>{thread.title}</h2>
-                    <div className="thread-meta">
-                      <span>{thread.username}</span>
-                      <span>💬 {thread.comment_count}</span>
-                      <span>👍 {thread.reaction_count}</span>
-                    </div>
-                  </div>
+            <Link
+              key={thread.id}
+              to={`/${channel}/thread/${thread.id}`}
+              className="feed-card"
+            >
+              <div className="feed-header">
+                <span className="feed-author">{thread.username}</span>
+                <span className="feed-time">· {formatDate(thread.created_at)}</span>
+              </div>
+              
+              <h2 className="feed-title">{thread.title}</h2>
+              
+              {thread.thumbnail && (
+                <div className="feed-image">
+                  <img src={thread.thumbnail} alt={thread.title} />
                 </div>
-              </Link>
-            </div>
+              )}
+              
+              <div className="feed-actions">
+                <button
+                  className="feed-action-button"
+                  onClick={(e) => handleLike(e, thread.id)}
+                >
+                  <span className="action-icon">❤️</span>
+                  <span className="action-count">{thread.reaction_count || 0}</span>
+                </button>
+                
+                <div className="feed-action-button">
+                  <span className="action-icon">💬</span>
+                  <span className="action-count">{thread.comment_count || 0}</span>
+                </div>
+              </div>
+            </Link>
           ))
         )}
       </div>
-
-      {showDialog && (
-        <div className="dialog-overlay" onClick={handleCancelNavigation}>
-          <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
-            <h3>外部リンクに遷移します</h3>
-            <p className="dialog-url">{selectedUrl}</p>
-            <div className="dialog-buttons">
-              <button onClick={handleConfirmNavigation} className="button button-primary">
-                遷移する
-              </button>
-              <button onClick={handleCancelNavigation} className="button button-cancel">
-                もどる
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

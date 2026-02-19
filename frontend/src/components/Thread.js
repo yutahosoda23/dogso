@@ -2,17 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
-// トップレベルコメントコンポーネント
-function TopLevelComment({ comment, replies, user, onReply, onReaction }) {
-  const [collapsed, setCollapsed] = useState(false);
+// コメントコンポーネント
+function Comment({ comment, allComments, user, onReply, onReaction }) {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+
+  // このコメントへの返信を取得
+  const replies = allComments.filter(c => c.parent_id === comment.id);
+  const isTopLevel = !comment.parent_id;
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
-    await onReply(comment.id, replyContent);
+    await onReply(comment.parent_id || comment.id, replyContent);
     setReplyContent('');
     setShowReplyForm(false);
+  };
+
+  const handleReplyClick = () => {
+    setShowReplies(true);
+    setShowReplyForm(true);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 9);
+    
+    const now = new Date();
+    const diff = now - date;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return `${seconds}秒前`;
+    if (minutes < 60) return `${minutes}分前`;
+    if (hours < 24) return `${hours}時間前`;
+    if (days < 7) return `${days}日前`;
+    
+    return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -20,36 +48,121 @@ function TopLevelComment({ comment, replies, user, onReply, onReaction }) {
       <div className="comment-card">
         <div className="comment-header">
           <strong>{comment.username}</strong>
-          <span>{new Date(comment.created_at).toLocaleString('ja-JP')}</span>
+          <span>· {formatDate(comment.created_at)}</span>
         </div>
         
         <p className="comment-content">{comment.content}</p>
         
         <div className="comment-actions">
-          <button onClick={() => onReaction(comment.id)} className="reaction-button">
-            👍 {comment.reaction_count || 0}
-          </button>
-          
-          {user && (
+          {/* 返信ボタン（最左） */}
+          {user && isTopLevel && (
             <button 
-              onClick={() => setShowReplyForm(!showReplyForm)} 
-              className="reply-button"
+              onClick={handleReplyClick} 
+              className="comment-action-button reply-button"
             >
-              💬 返信
+              <span className="reply-icon">↩️</span>
+              {replies.length > 0 && (
+                <span className="reply-count">{replies.length}</span>
+              )}
             </button>
           )}
           
-          {replies.length > 0 && (
-            <button 
-              onClick={() => setCollapsed(!collapsed)} 
-              className="collapse-button"
-            >
-              {collapsed ? '▶' : '▼'} {replies.length}件の返信
-            </button>
+          {/* リアクションボタン（4種類） */}
+          {user && (
+            <>
+              <button 
+                onClick={() => onReaction(comment.id, 'like')} 
+                className="comment-action-button"
+              >
+                <span>👍</span>
+                {comment.like_count > 0 && <span className="reply-count">{comment.like_count}</span>}
+              </button>
+              
+              <button 
+                onClick={() => onReaction(comment.id, 'heart')} 
+                className="comment-action-button"
+              >
+                <span>❤️</span>
+                {comment.heart_count > 0 && <span className="reply-count">{comment.heart_count}</span>}
+              </button>
+              
+              <button 
+                onClick={() => onReaction(comment.id, 'yellow')} 
+                className="comment-action-button"
+              >
+                <span>🟨</span>
+                {comment.yellow_count > 0 && <span className="reply-count">{comment.yellow_count}</span>}
+              </button>
+              
+              <button 
+                onClick={() => onReaction(comment.id, 'red')} 
+                className="comment-action-button"
+              >
+                <span>🟥</span>
+                {comment.red_count > 0 && <span className="reply-count">{comment.red_count}</span>}
+              </button>
+            </>
           )}
         </div>
+      </div>
 
-        {showReplyForm && (
+      {/* 返信を表示 */}
+      {isTopLevel && showReplies && replies.length > 0 && (
+        <div className="replies">
+          {replies.map(reply => (
+            <div key={reply.id} className="comment-item">
+              <div className="comment-card">
+                <div className="comment-header">
+                  <strong>{reply.username}</strong>
+                  <span>· {formatDate(reply.created_at)}</span>
+                </div>
+                
+                <p className="comment-content">{reply.content}</p>
+                
+                {user && (
+                  <div className="comment-actions">
+                    <button 
+                      onClick={() => onReaction(reply.id, 'like')} 
+                      className="comment-action-button"
+                    >
+                      <span>👍</span>
+                      {reply.like_count > 0 && <span className="reply-count">{reply.like_count}</span>}
+                    </button>
+                    
+                    <button 
+                      onClick={() => onReaction(reply.id, 'heart')} 
+                      className="comment-action-button"
+                    >
+                      <span>❤️</span>
+                      {reply.heart_count > 0 && <span className="reply-count">{reply.heart_count}</span>}
+                    </button>
+                    
+                    <button 
+                      onClick={() => onReaction(reply.id, 'yellow')} 
+                      className="comment-action-button"
+                    >
+                      <span>🟨</span>
+                      {reply.yellow_count > 0 && <span className="reply-count">{reply.yellow_count}</span>}
+                    </button>
+                    
+                    <button 
+                      onClick={() => onReaction(reply.id, 'red')} 
+                      className="comment-action-button"
+                    >
+                      <span>🟥</span>
+                      {reply.red_count > 0 && <span className="reply-count">{reply.red_count}</span>}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 返信フォーム */}
+      {isTopLevel && showReplyForm && (
+        <div className="replies">
           <form onSubmit={handleReplySubmit} className="reply-form">
             <textarea
               value={replyContent}
@@ -60,100 +173,22 @@ function TopLevelComment({ comment, replies, user, onReply, onReaction }) {
             />
             <div className="reply-form-buttons">
               <button type="submit" className="button button-small button-primary">
-                返信を投稿
+                返信
               </button>
               <button 
                 type="button" 
-                onClick={() => setShowReplyForm(false)}
+                onClick={() => {
+                  setShowReplyForm(false);
+                  if (replies.length === 0) setShowReplies(false);
+                }}
                 className="button button-small button-cancel"
               >
                 キャンセル
               </button>
             </div>
           </form>
-        )}
-      </div>
-
-      {/* 返信を表示（折りたたみ可能） */}
-      {!collapsed && replies.length > 0 && (
-        <div className="replies">
-          {replies.map(reply => (
-            <ReplyComment
-              key={reply.id}
-              reply={reply}
-              topLevelCommentId={comment.id}
-              user={user}
-              onReply={onReply}
-              onReaction={onReaction}
-            />
-          ))}
         </div>
       )}
-    </div>
-  );
-}
-
-// 返信コメントコンポーネント（1階層のみ、折りたたみなし）
-function ReplyComment({ reply, topLevelCommentId, user, onReply, onReaction }) {
-  const [showReplyForm, setShowReplyForm] = useState(false);
-  const [replyContent, setReplyContent] = useState('');
-
-  const handleReplySubmit = async (e) => {
-    e.preventDefault();
-    await onReply(topLevelCommentId, replyContent);
-    setReplyContent('');
-    setShowReplyForm(false);
-  };
-
-  return (
-    <div className="comment-item" style={{ marginLeft: '30px' }}>
-      <div className="comment-card">
-        <div className="comment-header">
-          <strong>{reply.username}</strong>
-          <span>{new Date(reply.created_at).toLocaleString('ja-JP')}</span>
-        </div>
-        
-        <p className="comment-content">{reply.content}</p>
-        
-        <div className="comment-actions">
-          <button onClick={() => onReaction(reply.id)} className="reaction-button">
-            👍 {reply.reaction_count || 0}
-          </button>
-          
-          {user && (
-            <button 
-              onClick={() => setShowReplyForm(!showReplyForm)} 
-              className="reply-button"
-            >
-              💬 返信
-            </button>
-          )}
-        </div>
-
-        {showReplyForm && (
-          <form onSubmit={handleReplySubmit} className="reply-form">
-            <textarea
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder={`${reply.username}さんへの返信...`}
-              required
-              rows="3"
-            />
-            <div className="reply-form-buttons">
-              <button type="submit" className="button button-small button-primary">
-                返信を投稿
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setShowReplyForm(false)}
-                className="button button-small button-cancel"
-              >
-                キャンセル
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
     </div>
   );
 }
@@ -171,16 +206,12 @@ function Thread() {
   const [editSubtitle, setEditSubtitle] = useState('');
   const [editUrl, setEditUrl] = useState('');
   const [editTags, setEditTags] = useState('');
-  const [showDialog, setShowDialog] = useState(false);
-  const [selectedUrl, setSelectedUrl] = useState('');
 
   useEffect(() => {
-    // ログインユーザー情報を取得
     const userStr = localStorage.getItem('user');
     if (userStr) {
       setUser(JSON.parse(userStr));
     }
-
     fetchThread();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -261,7 +292,7 @@ function Thread() {
     }
   };
 
-  const handleReaction = async (commentId = null) => {
+  const handleReaction = async (commentId, type) => {
     const token = localStorage.getItem('token');
     if (!token) {
       setError('リアクションするにはログインが必要です');
@@ -272,9 +303,8 @@ function Thread() {
       await axios.post(
         `${process.env.REACT_APP_API_URL}/api/reactions`,
         {
-          thread_id: commentId ? null : id,
           comment_id: commentId,
-          type: 'like'
+          type: type
         },
         {
           headers: {
@@ -294,9 +324,8 @@ function Thread() {
                 'Authorization': `Bearer ${token}`
               },
               data: {
-                thread_id: commentId ? null : id,
                 comment_id: commentId,
-                type: 'like'
+                type: type
               }
             }
           );
@@ -306,6 +335,36 @@ function Thread() {
         }
       } else {
         setError('リアクションに失敗しました');
+      }
+    }
+  };
+
+  const handleThreadLike = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/reactions`,
+        {
+          thread_id: id,
+          type: 'heart'
+        }
+      );
+      fetchThread();
+    } catch (error) {
+      if (error.response?.data?.error?.includes('既に')) {
+        try {
+          await axios.delete(
+            `${process.env.REACT_APP_API_URL}/api/reactions`,
+            {
+              data: {
+                thread_id: id,
+                type: 'heart'
+              }
+            }
+          );
+          fetchThread();
+        } catch (err) {
+          console.error('リアクション削除エラー:', err);
+        }
       }
     }
   };
@@ -348,21 +407,16 @@ function Thread() {
     }
   };
 
-  const handleThumbnailClick = (e, url) => {
-    e.preventDefault();
-    setSelectedUrl(url);
-    setShowDialog(true);
-  };
-
-  const handleConfirmNavigation = () => {
-    window.open(selectedUrl, '_blank', 'noopener,noreferrer');
-    setShowDialog(false);
-    setSelectedUrl('');
-  };
-
-  const handleCancelNavigation = () => {
-    setShowDialog(false);
-    setSelectedUrl('');
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 9);
+    return date.toLocaleString('ja-JP', { 
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
@@ -387,22 +441,12 @@ function Thread() {
     );
   }
 
-  // トップレベルのコメント（parent_idがnullのもの）のみを取得
   const topLevelComments = comments.filter(c => !c.parent_id);
-
-  // 各トップレベルコメントに対する返信をグループ化
-  const commentGroups = topLevelComments.map(topComment => {
-    const replies = comments.filter(c => c.parent_id === topComment.id);
-    return {
-      topComment,
-      replies
-    };
-  });
 
   return (
     <div className="container">
       <div className="header">
-        <div className="header-title">
+        <div className="header-title" onClick={() => window.location.href = `/${channel}`} style={{ cursor: 'pointer' }}>
           <h1>DOGSO/UrawaReds</h1>
         </div>
         <div className="header-buttons">
@@ -475,14 +519,6 @@ function Thread() {
             </form>
           ) : (
             <>
-              {thread.thumbnail && (
-                <div
-                  className="thread-detail-thumbnail"
-                  onClick={(e) => handleThumbnailClick(e, thread.url)}
-                >
-                  <img src={thread.thumbnail} alt={thread.title} />
-                </div>
-              )}
               <div className="thread-header-with-edit">
                 <h1>{thread.title}</h1>
                 {user && user.id === thread.user_id && (
@@ -490,12 +526,17 @@ function Thread() {
                     onClick={() => setEditMode(true)} 
                     className="edit-button"
                   >
-                    ✏️ 編集
+                    ✏️
                   </button>
                 )}
               </div>
               {thread.subtitle && (
                 <p className="thread-subtitle">{thread.subtitle}</p>
+              )}
+              {thread.thumbnail && (
+                <div className="thread-detail-thumbnail">
+                  <img src={thread.thumbnail} alt={thread.title} />
+                </div>
               )}
               {thread.tags && (
                 <div className="thread-tags">
@@ -505,19 +546,25 @@ function Thread() {
                 </div>
               )}
               <div className="thread-meta">
-                <span>投稿者: {thread.username}</span>
-                <span>{new Date(thread.created_at).toLocaleString('ja-JP')}</span>
+                <span>{formatDate(thread.created_at)}</span>
               </div>
-              <button onClick={() => handleReaction()} className="reaction-button">
-                👍 いいね
-              </button>
+              <div className="thread-actions">
+                <button onClick={handleThreadLike} className="thread-action-button">
+                  <span className="action-icon">❤️</span>
+                  <span className="action-count">{thread.reaction_count || 0}</span>
+                </button>
+                <div className="thread-action-button">
+                  <span className="action-icon">💬</span>
+                  <span className="action-count">{comments.length}</span>
+                </div>
+              </div>
             </>
           )}
         </div>
       )}
 
       <div className="comments-section">
-        <h2>コメント ({comments.length})</h2>
+        <h2>コメント</h2>
 
         {error && <div className="error-message">{error}</div>}
 
@@ -531,7 +578,7 @@ function Thread() {
               rows="4"
             />
             <button type="submit" className="button button-primary">
-              コメント投稿
+              コメント
             </button>
           </form>
         ) : (
@@ -541,14 +588,16 @@ function Thread() {
         )}
 
         <div className="comments-list">
-          {commentGroups.length === 0 ? (
-            <p>まだコメントがありません。最初のコメントを投稿しましょう！</p>
+          {topLevelComments.length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', padding: '20px 0' }}>
+              まだコメントがありません
+            </p>
           ) : (
-            commentGroups.map(({ topComment, replies }) => (
-              <TopLevelComment
-                key={topComment.id}
-                comment={topComment}
-                replies={replies}
+            topLevelComments.map((comment) => (
+              <Comment
+                key={comment.id}
+                comment={comment}
+                allComments={comments}
                 user={user}
                 onReply={handleReply}
                 onReaction={handleReaction}
@@ -557,24 +606,6 @@ function Thread() {
           )}
         </div>
       </div>
-
-      {/* 外部リンク確認ダイアログ */}
-      {showDialog && (
-        <div className="dialog-overlay" onClick={handleCancelNavigation}>
-          <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
-            <h3>外部リンクに遷移します</h3>
-            <p className="dialog-url">{selectedUrl}</p>
-            <div className="dialog-buttons">
-              <button onClick={handleConfirmNavigation} className="button button-primary">
-                遷移する
-              </button>
-              <button onClick={handleCancelNavigation} className="button button-cancel">
-                もどる
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

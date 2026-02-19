@@ -190,12 +190,16 @@ app.get('/api/threads/:id', (req, res) => {
         return res.status(404).json({ error: 'スレッドが見つかりません' });
       }
 
-      // コメントも取得
+      // コメントも取得（リアクション種類別カウント）
       db.all(
         `SELECT comments.*, users.username,
-         (SELECT COUNT(*) FROM reactions WHERE reactions.comment_id = comments.id) as reaction_count
+         (SELECT COUNT(*) FROM reactions WHERE reactions.comment_id = comments.id AND type = 'like') as like_count,
+         (SELECT COUNT(*) FROM reactions WHERE reactions.comment_id = comments.id AND type = 'heart') as heart_count,
+         (SELECT COUNT(*) FROM reactions WHERE reactions.comment_id = comments.id AND type = 'yellow') as yellow_count,
+         (SELECT COUNT(*) FROM reactions WHERE reactions.comment_id = comments.id AND type = 'red') as red_count,
+         (SELECT COUNT(*) FROM comments as replies WHERE replies.parent_id = comments.id) as reply_count
          FROM comments 
-         JOIN users ON comments.user_id = users.id 
+         LEFT JOIN users ON comments.user_id = users.id 
          WHERE comments.thread_id = ? 
          ORDER BY comments.created_at ASC`,
         [id],
@@ -383,22 +387,54 @@ app.post('/api/reactions', authenticateToken, (req, res) => {
   );
 });
 
-// リアクション削除（ログイン必須）
-app.delete('/api/reactions', authenticateToken, (req, res) => {
+// リアクション削除（スレッドは未ログインOK、コメントはログイン必須）
+app.delete('/api/reactions', (req, res) => {
   const { thread_id, comment_id, type } = req.body;
-  const userId = req.user.id;
-
-  db.run(
-    'DELETE FROM reactions WHERE user_id = ? AND thread_id = ? AND comment_id = ? AND type = ?',
-    [userId, thread_id || null, comment_id || null, type],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'サーバーエラー' });
-      }
-
-      res.json({ message: 'リアクションを削除しました' });
+  
+  if (comment_id) {
+    // コメントへのリアクション削除はログイン必須
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ error: 'トークンがありません' });
     }
-  );
+    
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ error: '無効なトークンです' });
+      }
+      
+      const userId = user.id;
+      
+      db.run(
+        'DELETE FROM reactions WHERE user_id = ? AND thread_id = ? AND comment_id = ? AND type = ?',
+        [userId, thread_id || null, comment_id, type],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: 'サーバーエラー' });
+          }
+          
+          res.json({ message: 'リアクションを削除しました' });
+        }
+      );
+    });
+  } else {
+    // スレッドのいいね削除（未ログインOK）
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    
+    db.run(
+      'DELETE FROM reactions WHERE user_id = ? AND thread_id = ? AND comment_id = ? AND type = ?',
+      [ipAddress, thread_id, null, type],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: 'サーバーエラー' });
+        }
+        
+        res.json({ message: 'リアクションを削除しました' });
+      }
+    );
+  }
 });
 
 // ================== サーバー起動 ==================
