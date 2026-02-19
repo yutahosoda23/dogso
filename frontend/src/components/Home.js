@@ -128,39 +128,59 @@ function Home() {
           </div>
         ) : (
           threads.map((thread) => (
-            <Link
-              key={thread.id}
-              to={`/${channel}/thread/${thread.id}`}
-              className="feed-card"
-            >
+            <div key={thread.id} className="feed-card">
               <div className="feed-header">
                 <span className="feed-author">{thread.username}</span>
                 <span className="feed-time">· {formatDate(thread.created_at)}</span>
               </div>
               
-              <h2 className="feed-title">{thread.title}</h2>
+              <Link 
+                to={`/${channel}/thread/${thread.id}`} 
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <h2 className="feed-title-large">{thread.title}</h2>
+              </Link>
               
               {thread.thumbnail && (
-                <div className="feed-image">
-                  <img src={thread.thumbnail} alt={thread.title} />
+                <Link 
+                  to={`/${channel}/thread/${thread.id}`}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className="thread-detail-thumbnail">
+                    <img src={thread.thumbnail} alt={thread.title} />
+                  </div>
+                </Link>
+              )}
+              
+              {thread.tags && (
+                <div className="thread-tags">
+                  {thread.tags.split(' ').map((tag, index) => (
+                    <span key={index} className="tag">{tag}</span>
+                  ))}
                 </div>
               )}
               
-              <div className="feed-actions">
+              <div className="thread-actions">
                 <button
-                  className="feed-action-button"
-                  onClick={(e) => handleLike(e, thread.id)}
+                  className="thread-action-button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleLike(e, thread.id);
+                  }}
                 >
                   <span className="action-icon">❤️</span>
                   <span className="action-count">{thread.reaction_count || 0}</span>
                 </button>
                 
-                <div className="feed-action-button">
+                <Link 
+                  to={`/${channel}/thread/${thread.id}`} 
+                  className="thread-action-button"
+                >
                   <span className="action-icon">💬</span>
                   <span className="action-count">{thread.comment_count || 0}</span>
-                </div>
+                </Link>
               </div>
-            </Link>
+            </div>
           ))
         )}
       </div>

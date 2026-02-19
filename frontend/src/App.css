@@ -140,6 +140,14 @@ body {
   background-color: var(--bg-white);
 }
 
+.feed-card .thread-detail-thumbnail {
+  margin-bottom: 12px;
+}
+
+.feed-card .thread-tags {
+  margin-bottom: 12px;
+}
+
 .feed-header {
   display: flex;
   align-items: center;
@@ -167,18 +175,13 @@ body {
   word-wrap: break-word;
 }
 
-.feed-image {
-  width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  margin-bottom: 12px;
-  border: 1px solid var(--border-color);
-}
-
-.feed-image img {
-  width: 100%;
-  height: auto;
-  display: block;
+.feed-title-large {
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 28px;
+  margin: 4px 0 12px 0;
+  color: var(--text-primary);
+  word-wrap: break-word;
 }
 
 .action-icon {
