@@ -199,7 +199,7 @@ function Home() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handleReaction(e, thread.id, 'heart');
+                      handleLike(e, thread.id);  // ← handleReaction を handleLike に変更
                     }}
                   >
                     <span className="action-icon">❤️</span>

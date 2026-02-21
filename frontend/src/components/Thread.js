@@ -587,7 +587,9 @@ function Thread() {
               <div className="thread-actions">
                 <button onClick={handleThreadLike} className="thread-action-button">
                   <span className="action-icon">❤️</span>
-                  <span className="action-count">{thread.reaction_count || 0}</span>
+                  <span className="action-count">
+                    {thread.reactions?.find(r => r.type === 'heart')?.count || 0}
+                  </span>
                 </button>
                 <div className="thread-action-button">
                   <span className="action-icon">💬</span>
