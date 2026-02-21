@@ -24,17 +24,25 @@ function Comment({ comment, allComments, user, onReply, onReaction }) {
     setShowReplyForm(true);
   };
 
-  const formatDate = (dateString) => {
+const formatDate = (dateString) => {
     const date = new Date(dateString);
-    date.setHours(date.getHours());
     
-    return date.toLocaleString('ja-JP', {
+    const now = new Date();
+    const diff = now - date;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return `${seconds}秒前`;
+    if (minutes < 60) return `${minutes}分前`;
+    if (hours < 24) return `${hours}時間前`;
+    if (days < 7) return `${days}日前`;
+    
+    return date.toLocaleDateString('ja-JP', { 
       timeZone: 'Asia/Tokyo',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      month: 'short', 
+      day: 'numeric' 
     });
   };
 
