@@ -26,9 +26,10 @@ function Comment({ comment, allComments, user, onReply, onReaction }) {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    date.setHours(date.getHours() + 9);
+    date.setHours(date.getHours());
     
     return date.toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -412,8 +413,9 @@ function Thread() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    date.setHours(date.getHours() + 9);
+    date.setHours(date.getHours());
     return date.toLocaleString('ja-JP', { 
+      timeZone: 'Asia/Tokyo',
       year: 'numeric',
       month: 'long', 
       day: 'numeric',

@@ -78,8 +78,6 @@ function Home() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    // JST (+9時間)
-    date.setHours(date.getHours() + 9);
     
     const now = new Date();
     const diff = now - date;
@@ -93,7 +91,11 @@ function Home() {
     if (hours < 24) return `${hours}時間前`;
     if (days < 7) return `${days}日前`;
     
-    return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('ja-JP', { 
+      timeZone: 'Asia/Tokyo',
+      month: 'short', 
+      day: 'numeric' 
+    });
   };
 
   if (loading) {
