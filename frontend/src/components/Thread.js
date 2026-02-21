@@ -206,7 +206,8 @@ function Thread() {
   const [editSubtitle, setEditSubtitle] = useState('');
   const [editUrl, setEditUrl] = useState('');
   const [editTags, setEditTags] = useState('');
-
+  const [showMenu, setShowMenu] = useState(false);
+  
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
@@ -231,6 +232,14 @@ function Thread() {
       setError('スレッドの読み込みに失敗しました');
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setShowMenu(false);
+    window.location.href = `/${channel}`;
   };
 
   const handleCommentSubmit = async (e) => {
@@ -450,9 +459,32 @@ function Thread() {
           <h1>DOGSO/UrawaReds</h1>
         </div>
         <div className="header-buttons">
-          <Link to={`/${channel}`} className="button">
-            ホーム
-          </Link>
+          {user ? (
+            <>
+              <Link to={`/${channel}/create`} className="button">
+                ＋投稿
+              </Link>
+              <div className="menu-container">
+                <button 
+                  className="menu-button"
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  ⋯
+                </button>
+                {showMenu && (
+                  <div className="dropdown-menu">
+                    <button onClick={handleLogout} className="dropdown-item">
+                      ログアウト
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <Link to={`/${channel}/login`} className="button">
+              ログイン
+            </Link>
+          )}
         </div>
       </div>
 
