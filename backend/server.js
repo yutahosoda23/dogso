@@ -422,6 +422,11 @@ app.delete('/api/reactions', async (req, res) => {
   }
 });
 
+// ヘルスチェック用（追加）
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'DOGSO API is running' });
+});
+
 // サーバー起動
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`サーバーが http://0.0.0.0:${PORT} で起動しました`);
