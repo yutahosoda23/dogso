@@ -423,6 +423,6 @@ app.delete('/api/reactions', async (req, res) => {
 });
 
 // サーバー起動
-app.listen(PORT, () => {
-  console.log(`サーバーが http://localhost:${PORT} で起動しました`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`サーバーが http://0.0.0.0:${PORT} で起動しました`);
 });
