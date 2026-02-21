@@ -9,6 +9,7 @@ function Home() {
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -31,6 +32,14 @@ function Home() {
       console.error('データ取得エラー:', error);
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setShowMenu(false);
+    navigate(`/${channel}`);
   };
 
   const handleLike = async (e, threadId) => {
@@ -105,11 +114,28 @@ function Home() {
         <div className="header-title" onClick={() => navigate(`/${channel}`)} style={{ cursor: 'pointer' }}>
           <h1>DOGSO/UrawaReds</h1>
         </div>
-        <div className="header-buttons">
+<div className="header-buttons">
           {user ? (
-            <Link to={`/${channel}/create`} className="button">
-              ＋投稿
-            </Link>
+            <>
+              <Link to={`/${channel}/create`} className="button">
+                ＋投稿
+              </Link>
+              <div className="menu-container">
+                <button 
+                  className="menu-button"
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  ⋯
+                </button>
+                {showMenu && (
+                  <div className="dropdown-menu">
+                    <button onClick={handleLogout} className="dropdown-item">
+                      ログアウト
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
             <Link to={`/${channel}/login`} className="button">
               ログイン
