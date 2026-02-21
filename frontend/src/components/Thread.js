@@ -28,19 +28,13 @@ function Comment({ comment, allComments, user, onReply, onReaction }) {
     const date = new Date(dateString);
     date.setHours(date.getHours() + 9);
     
-    const now = new Date();
-    const diff = now - date;
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (seconds < 60) return `${seconds}秒前`;
-    if (minutes < 60) return `${minutes}分前`;
-    if (hours < 24) return `${hours}時間前`;
-    if (days < 7) return `${days}日前`;
-    
-    return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -600,25 +594,6 @@ function Thread() {
 
         {error && <div className="error-message">{error}</div>}
 
-        {user ? (
-          <form onSubmit={handleCommentSubmit} className="comment-form">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="コメントを入力..."
-              required
-              rows="4"
-            />
-            <button type="submit" className="button button-primary">
-              コメント
-            </button>
-          </form>
-        ) : (
-          <div className="login-prompt">
-            コメントを投稿するには <Link to={`/${channel}/login`}>ログイン</Link> が必要です
-          </div>
-        )}
-
         <div className="comments-list">
           {topLevelComments.length === 0 ? (
             <p style={{ color: 'var(--text-secondary)', fontSize: '15px', padding: '20px 0' }}>
@@ -637,6 +612,25 @@ function Thread() {
             ))
           )}
         </div>
+
+        {user ? (
+          <form onSubmit={handleCommentSubmit} className="comment-form">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="コメントを入力..."
+              required
+              rows="4"
+            />
+            <button type="submit" className="button button-primary">
+              コメント
+            </button>
+          </form>
+        ) : (
+          <div className="login-prompt">
+            コメントを投稿するには <Link to={`/${channel}/login`}>ログイン</Link> が必要です
+          </div>
+        )}
       </div>
     </div>
   );
