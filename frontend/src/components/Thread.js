@@ -367,7 +367,6 @@ const handleDelete = async () => {
         }
       );
 
-      // 削除成功後、ホームへ遷移
       window.location.href = `/${channel}`;
     } catch (error) {
       setError(error.response?.data?.error || 'スレッドの削除に失敗しました');
