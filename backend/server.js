@@ -374,6 +374,60 @@ app.put('/api/threads/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// スレッド削除（投稿者のみ）
+app.delete('/api/threads/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  console.log('削除リクエスト受信:', { threadId: id, userId });
+
+  try {
+    const threadResult = await pool.query('SELECT * FROM threads WHERE id = $1', [id]);
+    
+    if (threadResult.rows.length === 0) {
+      console.log('スレッドが見つかりません:', id);
+      return res.status(404).json({ error: 'スレッドが見つかりません' });
+    }
+
+    const thread = threadResult.rows[0];
+    console.log('スレッド取得成功:', thread);
+
+    if (thread.user_id !== userId) {
+      console.log('権限なし:', { threadUserId: thread.user_id, requestUserId: userId });
+      return res.status(403).json({ error: '削除する権限がありません' });
+    }
+
+    console.log('削除処理開始...');
+
+    // リアクションを削除
+    console.log('スレッドのリアクションを削除...');
+    await pool.query('DELETE FROM reactions WHERE thread_id = $1', [id]);
+    
+    // コメントのリアクションを削除
+    console.log('コメントのリアクションを削除...');
+    await pool.query(`
+      DELETE FROM reactions 
+      WHERE comment_id IN (SELECT id FROM comments WHERE thread_id = $1)
+    `, [id]);
+    
+    // コメントを削除
+    console.log('コメントを削除...');
+    await pool.query('DELETE FROM comments WHERE thread_id = $1', [id]);
+    
+    // スレッドを削除
+    console.log('スレッドを削除...');
+    await pool.query('DELETE FROM threads WHERE id = $1', [id]);
+
+    console.log('削除完了:', id);
+    res.json({ message: 'スレッドを削除しました' });
+  } catch (error) {
+    console.error('スレッド削除エラー:', error);
+    console.error('エラー詳細:', error.message);
+    console.error('エラーコード:', error.code);
+    res.status(500).json({ error: 'サーバーエラー: ' + error.message });
+  }
+});
+
 // ================== コメント関連 ==================
 
 // コメント投稿（ログイン必須）

@@ -481,6 +481,8 @@ const handleDelete = async () => {
         <div className="thread-detail">
           {editMode ? (
             <form onSubmit={handleEditSubmit} className="edit-form">
+              {error && <div className="error-message">{error}</div>}
+              
               <div className="form-group">
                 <label>タイトル</label>
                 <input
