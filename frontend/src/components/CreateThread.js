@@ -62,8 +62,8 @@ function CreateThread() {
       return;
     }
 
-    if (subtitle.length > 100) {
-      setError('サブタイトルは100文字以内にしてください');
+    if (subtitle.length > 300) {
+      setError('詳細は300文字以内にしてください');
       setUploading(false);
       return;
     }
