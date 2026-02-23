@@ -33,8 +33,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// OPTIONSリクエストへの明示的な対応
-app.options('*', cors());
 app.use(express.json());
 
 // JWT認証ミドルウェア
