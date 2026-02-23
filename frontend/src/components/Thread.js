@@ -119,8 +119,10 @@ function Thread() {
   const [editTitle, setEditTitle] = useState('');
   const [editSubtitle, setEditSubtitle] = useState('');
   const [editUrl, setEditUrl] = useState('');
-  const [editTags, setEditTags] = useState('');
   const [showMenu, setShowMenu] = useState(false);
+  const [editFile, setEditFile] = useState(null);
+  const [editFilePreview, setEditFilePreview] = useState(null);
+  const [editUploading, setEditUploading] = useState(false);
   const [isReacting, setIsReacting] = useState(false);
   
   useEffect(() => {
@@ -139,8 +141,9 @@ function Thread() {
       setComments(response.data.comments || []);
       setEditTitle(response.data.title);
       setEditSubtitle(response.data.subtitle || '');
-      setEditUrl(response.data.url);
-      setEditTags(response.data.tags || '');
+      setEditUrl(response.data.url || '');
+      setEditFile(null);
+      setEditFilePreview(null);
       setLoading(false);
     } catch (error) {
       console.error('スレッド取得エラー:', error);
@@ -274,29 +277,56 @@ function Thread() {
     }
   };
 
-  const handleEditSubmit = async (e) => {
+const handleEditSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setEditUploading(true);
 
     const token = localStorage.getItem('token');
     if (!token) {
       setError('編集するにはログインが必要です');
+      setEditUploading(false);
       return;
     }
 
     if (editSubtitle.length > 300) {
       setError('詳細は300文字以内にしてください');
+      setEditUploading(false);
       return;
     }
 
     try {
+      let mediaUrl = thread.media_url;
+      let mediaType = thread.media_type;
+
+      // 新しいファイルがある場合、先にアップロード
+      if (editFile) {
+        const formData = new FormData();
+        formData.append('file', editFile);
+
+        const uploadResponse = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/upload`,
+          formData,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+
+        mediaUrl = uploadResponse.data.url;
+        mediaType = uploadResponse.data.type;
+      }
+
       await axios.put(
         `${process.env.REACT_APP_API_URL}/api/threads/${id}`,
         {
           title: editTitle,
           subtitle: editSubtitle,
           url: editUrl,
-          tags: editTags
+          media_url: mediaUrl,
+          media_type: mediaType
         },
         {
           headers: {
@@ -306,9 +336,41 @@ function Thread() {
       );
 
       setEditMode(false);
+      setEditUploading(false);
       fetchThread();
     } catch (error) {
       setError(error.response?.data?.error || 'スレッドの編集に失敗しました');
+      setEditUploading(false);
+    }
+  };
+
+  const handleEditFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
+    // ファイルサイズチェック（50MB）
+    if (selectedFile.size > 50 * 1024 * 1024) {
+      setError('ファイルサイズは50MB以下にしてください');
+      return;
+    }
+
+    // ファイルタイプチェック
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+    if (!validTypes.includes(selectedFile.type)) {
+      setError('画像（JPEG, PNG, GIF, WebP）または動画（MP4, WebM, MOV）のみアップロード可能です');
+      return;
+    }
+
+    setEditFile(selectedFile);
+    setError('');
+
+    // プレビュー生成
+    if (selectedFile.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setEditFilePreview(e.target.result);
+      reader.readAsDataURL(selectedFile);
+    } else if (selectedFile.type.startsWith('video/')) {
+      setEditFilePreview('video');
     }
   };
 
@@ -410,26 +472,61 @@ function Thread() {
                 <small className="char-count">{editSubtitle.length}/300</small>
               </div>
               <div className="form-group">
-                <label>URL</label>
+                <label>URL（任意）</label>
                 <input
                   type="url"
                   value={editUrl}
                   onChange={(e) => setEditUrl(e.target.value)}
-                  required
                 />
               </div>
               <div className="form-group">
-                <label>ハッシュタグ（スペース区切り）</label>
+                <label>画像・動画（任意）</label>
                 <input
-                  type="text"
-                  value={editTags}
-                  onChange={(e) => setEditTags(e.target.value)}
-                  placeholder="#技術 #ニュース #AI"
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleEditFileChange}
                 />
+                <small>50MB以下、画像（JPEG, PNG, GIF, WebP）または動画（MP4, WebM, MOV）</small>
               </div>
+
+              {/* 現在のメディアまたは新しいプレビュー */}
+              {editFilePreview ? (
+                <div className="file-preview">
+                  {editFilePreview === 'video' ? (
+                    <div className="video-preview">📹 動画が選択されました</div>
+                  ) : (
+                    <img src={editFilePreview} alt="プレビュー" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+                  )}
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setEditFile(null);
+                      setEditFilePreview(null);
+                    }}
+                    className="button button-cancel"
+                    style={{ marginTop: '8px' }}
+                  >
+                    削除
+                  </button>
+                </div>
+              ) : thread.media_url && (
+                <div className="file-preview">
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>現在のメディア</p>
+                  {thread.media_type === 'video' ? (
+                    <video 
+                      src={thread.media_url} 
+                      controls
+                      style={{ width: '100%', borderRadius: '8px' }}
+                    />
+                  ) : (
+                    <img src={thread.media_url} alt="現在の画像" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+                  )}
+                </div>
+              )}
+
               <div className="edit-buttons">
-                <button type="submit" className="button button-primary">
-                  保存
+                <button type="submit" className="button button-primary" disabled={editUploading}>
+                  {editUploading ? 'アップロード中...' : '保存'}
                 </button>
                 <button 
                   type="button" 
@@ -437,10 +534,11 @@ function Thread() {
                     setEditMode(false);
                     setEditTitle(thread.title);
                     setEditSubtitle(thread.subtitle || '');
-                    setEditUrl(thread.url);
-                    setEditTags(thread.tags || '');
+                    setEditUrl(thread.url || '');
+                    setEditFile(null);
+                    setEditFilePreview(null);
                   }}
-                  className="button button-cancel"
+                  className="button button-secondary"
                 >
                   キャンセル
                 </button>
@@ -488,7 +586,10 @@ function Thread() {
                 </div>
               )}
               <div className="thread-meta">
-                <span>{formatDate(thread.created_at)}</span>
+                <span>
+                  {formatDate(thread.edited_at || thread.created_at)}
+                  {thread.edited_at && <span style={{ marginLeft: '8px', color: 'var(--text-secondary)' }}>（編集済み）</span>}
+                </span>
               </div>
               <div className="thread-actions">
                 <button onClick={handleThreadLike} className="thread-action-button">

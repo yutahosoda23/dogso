@@ -339,7 +339,7 @@ app.post('/api/threads', authenticateToken, async (req, res) => {
 // スレッド編集（投稿者のみ）
 app.put('/api/threads/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { title, subtitle, url, tags } = req.body;
+  const { title, subtitle, url, media_url, media_type } = req.body;
   const userId = req.user.id;
 
   try {
@@ -355,17 +355,22 @@ app.put('/api/threads/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: '編集する権限がありません' });
     }
 
-    const thumbnail = await getThumbnail(url);
+    // URLがある場合のみサムネイル取得
+    let thumbnail = thread.thumbnail;
+    if (url && url !== thread.url) {
+      thumbnail = await getThumbnail(url);
+    }
 
+    // 編集日時を現在時刻に
     await pool.query(
-      'UPDATE threads SET title = $1, subtitle = $2, url = $3, thumbnail = $4, tags = $5 WHERE id = $6',
-      [title, subtitle || null, url, thumbnail, tags || null, id]
+      'UPDATE threads SET title = $1, subtitle = $2, url = $3, thumbnail = $4, media_url = $5, media_type = $6, edited_at = CURRENT_TIMESTAMP WHERE id = $7',
+      [title, subtitle || null, url || null, thumbnail, media_url || null, media_type || null, id]
     );
 
     res.json({ message: 'スレッドを更新しました' });
   } catch (error) {
     console.error('スレッド編集エラー:', error);
-    res.status(500).json({ error: 'サーバーエラー' });
+    res.status(500).json({ error: 'サーバーエラー: ' + error.message });
   }
 });
 

@@ -668,6 +668,8 @@ body {
 .edit-buttons .button {
   flex: 1;
   justify-content: center;
+  min-height: 44px;
+  height: 44px;
 }
 
 /* ===== レスポンシブ ===== */

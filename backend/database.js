@@ -96,12 +96,12 @@ const initDB = async () => {
       console.log('メディアカラムは既に存在します');
     }
 
-    // URLカラムのNOT NULL制約を削除
+    // 編集日時カラムを追加
     try {
-      await pool.query(`ALTER TABLE threads ALTER COLUMN url DROP NOT NULL`);
-      console.log('URL制約を削除しました');
+      await pool.query(`ALTER TABLE threads ADD COLUMN IF NOT EXISTS edited_at TIMESTAMP`);
+      console.log('編集日時カラムを追加しました');
     } catch (error) {
-      console.log('URL制約削除スキップ:', error.message);
+      console.log('編集日時カラム追加スキップ:', error.message);
     }
 
     console.log('データベーステーブルを作成しました');
