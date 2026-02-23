@@ -10,6 +10,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [reactingThreads, setReactingThreads] = useState(new Set());
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -46,6 +47,14 @@ function Home() {
     e.preventDefault();
     e.stopPropagation();
 
+    // 既にリアクション中の場合は処理しない（連打防止）
+    if (reactingThreads.has(threadId)) {
+      return;
+    }
+
+    // リアクション中のスレッドとして記録
+    setReactingThreads(prev => new Set([...prev, threadId]));
+
     try {
       await axios.post(
         `${process.env.REACT_APP_API_URL}/api/reactions`,
@@ -54,7 +63,7 @@ function Home() {
           type: 'heart'
         }
       );
-      fetchChannelAndThreads();
+      await fetchChannelAndThreads();
     } catch (error) {
       if (error.response?.data?.error?.includes('既に')) {
         // 既にリアクション済み → 削除
@@ -68,11 +77,18 @@ function Home() {
               }
             }
           );
-          fetchChannelAndThreads();
+          await fetchChannelAndThreads();
         } catch (err) {
           console.error('リアクション削除エラー:', err);
         }
       }
+    } finally {
+      // リアクション処理完了後、リストから削除
+      setReactingThreads(prev => {
+        const next = new Set(prev);
+        next.delete(threadId);
+        return next;
+      });
     }
   };
 

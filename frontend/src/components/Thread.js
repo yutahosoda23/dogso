@@ -210,6 +210,7 @@ function Thread() {
   const [editUrl, setEditUrl] = useState('');
   const [editTags, setEditTags] = useState('');
   const [showMenu, setShowMenu] = useState(false);
+  const [isReacting, setIsReacting] = useState(false);
   
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -352,6 +353,13 @@ function Thread() {
   };
 
   const handleThreadLike = async () => {
+    // 既にリアクション中の場合は処理しない（連打防止）
+    if (isReacting) {
+      return;
+    }
+
+    setIsReacting(true);
+
     try {
       await axios.post(
         `${process.env.REACT_APP_API_URL}/api/reactions`,
@@ -360,7 +368,7 @@ function Thread() {
           type: 'heart'
         }
       );
-      fetchThread();
+      await fetchThread();
     } catch (error) {
       if (error.response?.data?.error?.includes('既に')) {
         try {
@@ -373,11 +381,13 @@ function Thread() {
               }
             }
           );
-          fetchThread();
+          await fetchThread();
         } catch (err) {
           console.error('リアクション削除エラー:', err);
         }
       }
+    } finally {
+      setIsReacting(false);
     }
   };
 
