@@ -188,34 +188,6 @@ function Thread() {
     }
   };
 
-  const handleReply = async (parentId, content) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('返信するにはログインが必要です');
-      return;
-    }
-
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/comments`,
-        {
-          content: content,
-          thread_id: id,
-          parent_id: parentId
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      fetchThread();
-    } catch (error) {
-      setError(error.response?.data?.error || '返信の投稿に失敗しました');
-    }
-  };
-
   const handleReaction = async (commentId, type) => {
     const token = localStorage.getItem('token');
     if (!token) {

@@ -4,7 +4,6 @@ import axios from 'axios';
 
 function CommentDetail() {
   const { id, channel, commentId } = useParams();
-  const [thread, setThread] = useState(null);
   const [comment, setComment] = useState(null);
   const [replies, setReplies] = useState([]);
   const [newReply, setNewReply] = useState('');
@@ -25,7 +24,6 @@ function CommentDetail() {
   const fetchCommentDetail = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/threads/${id}`);
-      setThread(response.data);
       
       const allComments = response.data.comments || [];
       const targetComment = allComments.find(c => c.id === parseInt(commentId));
