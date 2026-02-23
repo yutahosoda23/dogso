@@ -44,7 +44,7 @@ const initDB = async () => {
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         subtitle TEXT,
-        url TEXT NOT NULL,
+        url TEXT,
         thumbnail TEXT,
         tags TEXT,
         media_url TEXT,
@@ -71,8 +71,7 @@ const initDB = async () => {
         FOREIGN KEY (parent_id) REFERENCES comments(id)
       )
     `);
-
-    // リアクションテーブル
+// リアクションテーブル
     await pool.query(`
       CREATE TABLE IF NOT EXISTS reactions (
         id SERIAL PRIMARY KEY,
@@ -86,6 +85,16 @@ const initDB = async () => {
         UNIQUE(user_id, thread_id, comment_id, type)
       )
     `);
+
+    // 既存テーブルに新しいカラムを追加（エラーは無視）
+    try {
+      await pool.query(`ALTER TABLE threads ADD COLUMN IF NOT EXISTS media_url TEXT`);
+      await pool.query(`ALTER TABLE threads ADD COLUMN IF NOT EXISTS media_type TEXT`);
+      console.log('メディアカラムを追加しました');
+    } catch (error) {
+      // カラムが既に存在する場合はエラーを無視
+      console.log('メディアカラムは既に存在します');
+    }
 
     console.log('データベーステーブルを作成しました');
   } catch (error) {

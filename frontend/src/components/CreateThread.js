@@ -162,23 +162,12 @@ function CreateThread() {
           </div>
 
           <div className="form-group">
-            <label>URL *</label>
+            <label>URL（任意）</label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>ハッシュタグ（スペース区切り）</label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="#技術 #ニュース #AI"
             />
           </div>
 

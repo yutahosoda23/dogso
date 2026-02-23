@@ -311,23 +311,28 @@ app.post('/api/threads', authenticateToken, async (req, res) => {
   const { title, subtitle, url, tags, media_url, media_type } = req.body;
   const userId = req.user.id;
 
-  if (!title || !url) {
-    return res.status(400).json({ error: 'タイトルとURLが必要です' });
+  if (!title) {
+    return res.status(400).json({ error: 'タイトルが必要です' });
   }
 
   try {
-    const thumbnail = await getThumbnail(url);
+    // URLがある場合のみサムネイル取得
+    let thumbnail = null;
+    if (url) {
+      thumbnail = await getThumbnail(url);
+    }
+    
     const channelId = 1; // デフォルトで浦和レッズ
     
     const result = await pool.query(
       'INSERT INTO threads (title, subtitle, url, thumbnail, tags, media_url, media_type, channel_id, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-      [title, subtitle || null, url, thumbnail, tags || null, media_url || null, media_type || null, channelId, userId]
+      [title, subtitle || null, url || null, thumbnail, tags || null, media_url || null, media_type || null, channelId, userId]
     );
 
     res.json({ message: 'スレッドを作成しました', thread: result.rows[0] });
   } catch (error) {
     console.error('スレッド作成エラー:', error);
-    res.status(500).json({ error: 'サーバーエラー' });
+    res.status(500).json({ error: 'サーバーエラー: ' + error.message });
   }
 });
 
