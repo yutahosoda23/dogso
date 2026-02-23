@@ -96,6 +96,14 @@ const initDB = async () => {
       console.log('メディアカラムは既に存在します');
     }
 
+    // URLカラムのNOT NULL制約を削除
+    try {
+      await pool.query(`ALTER TABLE threads ALTER COLUMN url DROP NOT NULL`);
+      console.log('URL制約を削除しました');
+    } catch (error) {
+      console.log('URL制約削除スキップ:', error.message);
+    }
+
     console.log('データベーステーブルを作成しました');
   } catch (error) {
     console.error('テーブル作成エラー:', error);
