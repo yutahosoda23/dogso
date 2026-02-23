@@ -190,13 +190,36 @@ function Home() {
                   <h2 className="feed-title-large">{thread.title}</h2>
                 </Link>
                 
-                {thread.thumbnail && (
+                {/* アップロードされたメディア（優先） */}
+                {thread.media_url ? (
                   <Link 
                     to={`/${channel}/thread/${thread.id}`}
                     style={{ textDecoration: 'none' }}
                   >
                     <div className="thread-detail-thumbnail">
-                      <img src={thread.thumbnail} alt={thread.title} />
+                      {thread.media_type === 'video' ? (
+                        <video 
+                          src={thread.media_url} 
+                          controls
+                          style={{ width: '100%', borderRadius: '16px' }}
+                          preload="metadata"
+                        />
+                      ) : (
+                        <img 
+                          src={thread.media_url} 
+                          alt={thread.title}
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
+                  </Link>
+                ) : thread.thumbnail && (
+                  <Link 
+                    to={`/${channel}/thread/${thread.id}`}
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <div className="thread-detail-thumbnail">
+                      <img src={thread.thumbnail} alt={thread.title} loading="lazy" />
                     </div>
                   </Link>
                 )}

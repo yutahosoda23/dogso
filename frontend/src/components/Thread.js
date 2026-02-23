@@ -284,8 +284,8 @@ function Thread() {
       return;
     }
 
-    if (editSubtitle.length > 100) {
-      setError('サブタイトルは100文字以内にしてください');
+    if (editSubtitle.length > 300) {
+      setError('詳細は300文字以内にしてください');
       return;
     }
 
@@ -399,15 +399,15 @@ function Thread() {
                 />
               </div>
               <div className="form-group">
-                <label>サブタイトル（100文字以内）</label>
+                <label>詳細（300文字以内）</label>
                 <textarea
                   value={editSubtitle}
                   onChange={(e) => setEditSubtitle(e.target.value)}
                   placeholder="記事の要約や補足説明"
-                  maxLength="100"
-                  rows="3"
+                  maxLength="300"
+                  rows="5"
                 />
-                <small className="char-count">{editSubtitle.length}/100</small>
+                <small className="char-count">{editSubtitle.length}/300</small>
               </div>
               <div className="form-group">
                 <label>URL</label>

@@ -8,7 +8,6 @@ function CreateThread() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [url, setUrl] = useState('');
-  const [tags, setTags] = useState('');
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -100,7 +99,6 @@ function CreateThread() {
           title,
           subtitle,
           url,
-          tags,
           media_url: mediaUrl,
           media_type: mediaType
         },
@@ -150,15 +148,15 @@ function CreateThread() {
           </div>
 
           <div className="form-group">
-            <label>サブタイトル（100文字以内）</label>
+            <label>詳細（300文字以内）</label>
             <textarea
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               placeholder="記事の要約や補足説明"
-              maxLength="100"
-              rows="3"
+              maxLength="300"
+              rows="5"
             />
-            <small className="char-count">{subtitle.length}/100</small>
+            <small className="char-count">{subtitle.length}/300</small>
           </div>
 
           <div className="form-group">
