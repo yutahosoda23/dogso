@@ -124,8 +124,15 @@ function CreateThread() {
           <h1>DOGSO/UrawaReds</h1>
         </div>
         <div className="header-buttons">
-          <button onClick={() => navigate(`/${channel}`)} className="button">
-            キャンセル
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('create-thread-form').requestSubmit();
+            }} 
+            className="button"
+            disabled={uploading}
+          >
+            {uploading ? 'アップロード中...' : '投稿'}
           </button>
         </div>
       </div>
@@ -135,7 +142,7 @@ function CreateThread() {
 
         {error && <div className="error-message">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form id="create-thread-form" onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label>タイトル *</label>
             <input
@@ -202,6 +209,14 @@ function CreateThread() {
 
           <button type="submit" className="button button-primary" disabled={uploading}>
             {uploading ? 'アップロード中...' : '投稿'}
+          </button>
+          
+          <button 
+            type="button" 
+            onClick={() => navigate(`/${channel}`)} 
+            className="button button-secondary"
+          >
+            キャンセル
           </button>
         </form>
       </div>
