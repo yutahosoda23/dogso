@@ -580,7 +580,7 @@ const handleDelete = async () => {
                   onClick={handleDelete}
                   className="button button-delete"
                 >
-                  削除
+                  この投稿を削除
                 </button>
               </div>
             </form>

@@ -219,12 +219,45 @@ body {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--border-color);
+  max-height: 400px;
+  position: relative;
 }
 
 .thread-detail-thumbnail img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  max-height: 400px;
+  object-fit: cover;
   display: block;
+}
+
+.thread-detail-thumbnail video {
+  width: 100%;
+  height: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
+/* フィード内の画像・動画はさらに小さく */
+.feed-card .thread-detail-thumbnail {
+  max-height: 300px;
+}
+
+.feed-card .thread-detail-thumbnail img,
+.feed-card .thread-detail-thumbnail video {
+  max-height: 300px;
+}
+
+/* スレッド詳細ページでは少し大きめに */
+.thread-detail .thread-detail-thumbnail {
+  max-height: 500px;
+}
+
+.thread-detail .thread-detail-thumbnail img,
+.thread-detail .thread-detail-thumbnail video {
+  max-height: 500px;
+  object-fit: contain;
 }
 
 .thread-header-with-edit {
@@ -663,6 +696,7 @@ body {
   display: flex;
   gap: 12px;
   margin-top: 20px;
+  align-items: stretch;
 }
 
 .edit-buttons .button {
@@ -670,6 +704,31 @@ body {
   justify-content: center;
   min-height: 44px;
   height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.delete-section {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.button-delete {
+  background-color: #6b7280;
+  color: white;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.button-delete:hover {
+  background-color: #4b5563;
 }
 
 /* ===== レスポンシブ ===== */
