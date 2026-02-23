@@ -344,6 +344,36 @@ const handleEditSubmit = async (e) => {
     }
   };
 
+const handleDelete = async () => {
+    if (!window.confirm('本当に削除しますか？この操作は取り消せません。')) {
+      return;
+    }
+
+    setError('');
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('削除するにはログインが必要です');
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/threads/${id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      // 削除成功後、ホームへ遷移
+      window.location.href = `/${channel}`;
+    } catch (error) {
+      setError(error.response?.data?.error || 'スレッドの削除に失敗しました');
+    }
+  };
+
   const handleEditFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
@@ -543,6 +573,16 @@ const handleEditSubmit = async (e) => {
                   キャンセル
                 </button>
               </div>
+              
+              <div className="delete-section">
+                <button 
+                  type="button" 
+                  onClick={handleDelete}
+                  className="button button-delete"
+                >
+                  削除
+                </button>
+              </div>
             </form>
           ) : (
             <>
@@ -608,7 +648,8 @@ const handleEditSubmit = async (e) => {
         </div>
       )}
 
-      <div className="comments-section">
+      {!editMode && (
+        <div className="comments-section">
         <h2>コメント</h2>
 
         {error && <div className="error-message">{error}</div>}
@@ -651,7 +692,8 @@ const handleEditSubmit = async (e) => {
             コメントを投稿するには <Link to={`/${channel}/login`}>ログイン</Link> が必要です
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
