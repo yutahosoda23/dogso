@@ -5,6 +5,21 @@ const jwt = require('jsonwebtoken');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const pool = require('./database');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+// Cloudinary設定
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Multer設定（メモリストレージ）
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB上限
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,8 +28,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 // ミドルウェア
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'https://dogso.vercel.app',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// OPTIONSリクエストへの明示的な対応
+app.options('*', cors());
 app.use(express.json());
 
 // JWT認証ミドルウェア
@@ -243,9 +263,54 @@ app.get('/api/threads/:id', async (req, res) => {
   }
 });
 
+// ファイルアップロード（ログイン必須）
+app.post('/api/upload', authenticateToken, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'ファイルが選択されていません' });
+    }
+
+    // ファイルタイプを判定
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const resourceType = isVideo ? 'video' : 'image';
+
+    // Cloudinaryにアップロード
+    const uploadPromise = new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: resourceType,
+          folder: 'dogso',
+          transformation: resourceType === 'image' ? [
+            { width: 1200, crop: 'limit' },
+            { quality: 'auto' }
+          ] : undefined
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      uploadStream.end(req.file.buffer);
+    });
+
+    const result = await uploadPromise;
+
+    res.json({
+      url: result.secure_url,
+      type: resourceType,
+      thumbnail: isVideo ? result.secure_url.replace(/\.[^.]+$/, '.jpg') : result.secure_url
+    });
+
+  } catch (error) {
+    console.error('アップロードエラー:', error);
+    res.status(500).json({ error: 'ファイルのアップロードに失敗しました' });
+  }
+});
+
 // スレッド作成（ログイン必須）
 app.post('/api/threads', authenticateToken, async (req, res) => {
-  const { title, subtitle, url, tags } = req.body;
+  const { title, subtitle, url, tags, media_url, media_type } = req.body;
   const userId = req.user.id;
 
   if (!title || !url) {
@@ -257,8 +322,8 @@ app.post('/api/threads', authenticateToken, async (req, res) => {
     const channelId = 1; // デフォルトで浦和レッズ
     
     const result = await pool.query(
-      'INSERT INTO threads (title, subtitle, url, thumbnail, tags, channel_id, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [title, subtitle || null, url, thumbnail, tags || null, channelId, userId]
+      'INSERT INTO threads (title, subtitle, url, thumbnail, tags, media_url, media_type, channel_id, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [title, subtitle || null, url, thumbnail, tags || null, media_url || null, media_type || null, channelId, userId]
     );
 
     res.json({ message: 'スレッドを作成しました', thread: result.rows[0] });

@@ -462,7 +462,20 @@ function Thread() {
               {thread.subtitle && (
                 <p className="thread-subtitle">{thread.subtitle}</p>
               )}
-              {thread.thumbnail && (
+              {/* アップロードされたメディア（優先） */}
+              {thread.media_url ? (
+                <div className="thread-detail-thumbnail">
+                  {thread.media_type === 'video' ? (
+                    <video 
+                      src={thread.media_url} 
+                      controls
+                      style={{ width: '100%', borderRadius: '16px' }}
+                    />
+                  ) : (
+                    <img src={thread.media_url} alt={thread.title} />
+                  )}
+                </div>
+              ) : thread.thumbnail && (
                 <div className="thread-detail-thumbnail">
                   <img src={thread.thumbnail} alt={thread.title} />
                 </div>

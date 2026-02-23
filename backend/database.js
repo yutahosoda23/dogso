@@ -47,6 +47,8 @@ const initDB = async () => {
         url TEXT NOT NULL,
         thumbnail TEXT,
         tags TEXT,
+        media_url TEXT,
+        media_type TEXT,
         channel_id INTEGER NOT NULL DEFAULT 1,
         user_id INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

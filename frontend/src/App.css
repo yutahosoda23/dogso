@@ -748,3 +748,21 @@ body {
   padding: 16px;
   border-radius: 8px;
 }
+
+/* ===== ファイルプレビュー ===== */
+.file-preview {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: var(--bg-light);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.video-preview {
+  padding: 40px;
+  text-align: center;
+  font-size: 18px;
+  color: var(--text-secondary);
+  background-color: var(--bg-white);
+  border-radius: 8px;
+}
