@@ -735,3 +735,16 @@ body {
 .dropdown-item:active {
   background-color: #e8e8e8;
 }
+
+/* ===== コメント詳細画面 ===== */
+.comment-detail-main {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-light);
+}
+
+.comment-detail-main .comment-card {
+  background-color: var(--bg-white);
+  padding: 16px;
+  border-radius: 8px;
+}

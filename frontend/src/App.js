@@ -5,6 +5,7 @@ import Thread from './components/Thread';
 import Login from './components/Login';
 import Register from './components/Register';
 import CreateThread from './components/CreateThread';
+import CommentDetail from './components/CommentDetail';
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           
           {/* スレッド詳細 */}
           <Route path="/:channel/thread/:id" element={<Thread />} />
+          <Route path="/:channel/thread/:id/comment/:commentId" element={<CommentDetail />} />
           
           {/* 認証・投稿 */}
           <Route path="/:channel/login" element={<Login />} />

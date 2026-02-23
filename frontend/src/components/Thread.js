@@ -3,28 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
 // コメントコンポーネント
-function Comment({ comment, allComments, user, onReply, onReaction }) {
-  const [showReplyForm, setShowReplyForm] = useState(false);
-  const [showReplies, setShowReplies] = useState(false);
-  const [replyContent, setReplyContent] = useState('');
-
-  // このコメントへの返信を取得
+function Comment({ comment, allComments, user, onReaction, threadId, channel }) {
+  // このコメントへの返信数を取得
   const replies = allComments.filter(c => c.parent_id === comment.id);
-  const isTopLevel = !comment.parent_id;
 
-  const handleReplySubmit = async (e) => {
-    e.preventDefault();
-    await onReply(comment.parent_id || comment.id, replyContent);
-    setReplyContent('');
-    setShowReplyForm(false);
-  };
-
-  const handleReplyClick = () => {
-    setShowReplies(true);
-    setShowReplyForm(true);
-  };
-
-const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
     
     const now = new Date();
@@ -48,148 +31,76 @@ const formatDate = (dateString) => {
 
   return (
     <div className="comment-item">
-      <div className="comment-card">
-        <div className="comment-header">
-          <strong>{comment.username}</strong>
-          <span>· {formatDate(comment.created_at)}</span>
-        </div>
-        
-        <p className="comment-content">{comment.content}</p>
-        
-        <div className="comment-actions">
-          {/* 返信ボタン（最左） */}
-          {user && isTopLevel && (
-            <button 
-              onClick={handleReplyClick} 
-              className="comment-action-button reply-button"
-            >
-              <span className="reply-icon">↩️</span>
-              {replies.length > 0 && (
-                <span className="reply-count">{replies.length}</span>
-              )}
-            </button>
-          )}
+      <Link 
+        to={`/${channel}/thread/${threadId}/comment/${comment.id}`}
+        style={{ textDecoration: 'none', color: 'inherit' }}
+      >
+        <div className="comment-card">
+          <div className="comment-header">
+            <strong>{comment.username}</strong>
+            <span>· {formatDate(comment.created_at)}</span>
+          </div>
           
-          {/* リアクションボタン（4種類） */}
-          {user && (
-            <>
-              <button 
-                onClick={() => onReaction(comment.id, 'like')} 
-                className="comment-action-button"
-              >
-                <span>👍</span>
-                {comment.like_count > 0 && <span className="reply-count">{comment.like_count}</span>}
-              </button>
-              
-              <button 
-                onClick={() => onReaction(comment.id, 'heart')} 
-                className="comment-action-button"
-              >
-                <span>❤️</span>
-                {comment.heart_count > 0 && <span className="reply-count">{comment.heart_count}</span>}
-              </button>
-              
-              <button 
-                onClick={() => onReaction(comment.id, 'yellow')} 
-                className="comment-action-button"
-              >
-                <span>🟨</span>
-                {comment.yellow_count > 0 && <span className="reply-count">{comment.yellow_count}</span>}
-              </button>
-              
-              <button 
-                onClick={() => onReaction(comment.id, 'red')} 
-                className="comment-action-button"
-              >
-                <span>🟥</span>
-                {comment.red_count > 0 && <span className="reply-count">{comment.red_count}</span>}
-              </button>
-            </>
+          <p className="comment-content">{comment.content}</p>
+          
+          {replies.length > 0 && (
+            <div style={{ 
+              fontSize: '13px', 
+              color: 'var(--reds-primary)', 
+              marginTop: '8px',
+              fontWeight: '500'
+            }}>
+              {replies.length}件の返信
+            </div>
           )}
         </div>
-      </div>
-
-      {/* 返信を表示 */}
-      {isTopLevel && showReplies && replies.length > 0 && (
-        <div className="replies">
-          {replies.map(reply => (
-            <div key={reply.id} className="comment-item">
-              <div className="comment-card">
-                <div className="comment-header">
-                  <strong>{reply.username}</strong>
-                  <span>· {formatDate(reply.created_at)}</span>
-                </div>
-                
-                <p className="comment-content">{reply.content}</p>
-                
-                {user && (
-                  <div className="comment-actions">
-                    <button 
-                      onClick={() => onReaction(reply.id, 'like')} 
-                      className="comment-action-button"
-                    >
-                      <span>👍</span>
-                      {reply.like_count > 0 && <span className="reply-count">{reply.like_count}</span>}
-                    </button>
-                    
-                    <button 
-                      onClick={() => onReaction(reply.id, 'heart')} 
-                      className="comment-action-button"
-                    >
-                      <span>❤️</span>
-                      {reply.heart_count > 0 && <span className="reply-count">{reply.heart_count}</span>}
-                    </button>
-                    
-                    <button 
-                      onClick={() => onReaction(reply.id, 'yellow')} 
-                      className="comment-action-button"
-                    >
-                      <span>🟨</span>
-                      {reply.yellow_count > 0 && <span className="reply-count">{reply.yellow_count}</span>}
-                    </button>
-                    
-                    <button 
-                      onClick={() => onReaction(reply.id, 'red')} 
-                      className="comment-action-button"
-                    >
-                      <span>🟥</span>
-                      {reply.red_count > 0 && <span className="reply-count">{reply.red_count}</span>}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 返信フォーム */}
-      {isTopLevel && showReplyForm && (
-        <div className="replies">
-          <form onSubmit={handleReplySubmit} className="reply-form">
-            <textarea
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder={`${comment.username}さんへの返信...`}
-              required
-              rows="3"
-            />
-            <div className="reply-form-buttons">
-              <button type="submit" className="button button-small button-primary">
-                返信
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  setShowReplyForm(false);
-                  if (replies.length === 0) setShowReplies(false);
-                }}
-                className="button button-small button-cancel"
-              >
-                キャンセル
-              </button>
-            </div>
-          </form>
+      </Link>
+      
+      {user && (
+        <div className="comment-actions">
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              onReaction(comment.id, 'like');
+            }}
+            className="comment-action-button"
+          >
+            <span>👍</span>
+            {comment.like_count > 0 && <span className="reply-count">{comment.like_count}</span>}
+          </button>
+          
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              onReaction(comment.id, 'heart');
+            }}
+            className="comment-action-button"
+          >
+            <span>❤️</span>
+            {comment.heart_count > 0 && <span className="reply-count">{comment.heart_count}</span>}
+          </button>
+          
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              onReaction(comment.id, 'yellow');
+            }}
+            className="comment-action-button"
+          >
+            <span>🟨</span>
+            {comment.yellow_count > 0 && <span className="reply-count">{comment.yellow_count}</span>}
+          </button>
+          
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              onReaction(comment.id, 'red');
+            }}
+            className="comment-action-button"
+          >
+            <span>🟥</span>
+            {comment.red_count > 0 && <span className="reply-count">{comment.red_count}</span>}
+          </button>
         </div>
       )}
     </div>
@@ -628,8 +539,9 @@ function Thread() {
                 comment={comment}
                 allComments={comments}
                 user={user}
-                onReply={handleReply}
                 onReaction={handleReaction}
+                threadId={id}
+                channel={channel}
               />
             ))
           )}
